@@ -37,11 +37,22 @@ class StationDetailsView: UIView {
     }
     
     func showRouteOnMap(pickupCoordinate: CLLocationCoordinate2D, destinationCoordinate: CLLocationCoordinate2D) {
+        
+        let userLocation = MKPointAnnotation()
+        userLocation.title = "userLocation"
+        userLocation.coordinate = pickupCoordinate
+        mapView.addAnnotation(userLocation)
+        
+        let bikeStation = MKPointAnnotation()
+        bikeStation.title = "bikeStation"
+        bikeStation.coordinate = destinationCoordinate
+        mapView.addAnnotation(bikeStation)
+        
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: pickupCoordinate, addressDictionary: nil))
         request.destination = MKMapItem(placemark: MKPlacemark(coordinate: destinationCoordinate, addressDictionary: nil))
         request.requestsAlternateRoutes = true
-        request.transportType = .automobile
+        request.transportType = .walking
         
         MKDirections(request: request).calculate { [weak self] response, error in
             guard let route = response?.routes.first else { return }
@@ -79,7 +90,7 @@ class StationDetailsView: UIView {
             stationDetailView.leadingAnchor.constraint(equalTo: leadingAnchor),
             stationDetailView.trailingAnchor.constraint(equalTo: trailingAnchor),
             stationDetailView.bottomAnchor.constraint(equalTo: bottomSeparatoView.topAnchor),
-        
+            
             bottomSeparatoView.leadingAnchor.constraint(equalTo: leadingAnchor),
             bottomSeparatoView.trailingAnchor.constraint(equalTo: trailingAnchor),
             bottomSeparatoView.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -91,8 +102,30 @@ class StationDetailsView: UIView {
 extension StationDetailsView: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         let renderer = MKPolylineRenderer(overlay: overlay)
-        renderer.strokeColor = UIColor.red
-        renderer.lineWidth = 5.0
+        renderer.strokeColor = UIColor.distanceLine
+        renderer.lineWidth = 2.0
+        renderer.lineCap = .square
+        renderer.lineDashPattern = [4,8]
         return renderer
+    }
+    
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        if annotation is MKUserLocation { return nil }
+        var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: "custom")
+        
+        if annotationView == nil {
+            annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: "custom")
+        } else {
+            annotationView?.annotation = annotation
+        }
+        
+        let annotationImage = switch annotation.title {
+        case "bikeStation": AppImages.bike
+        case "userLocation": AppImages.location
+        default: UIImage()
+        }
+        
+        annotationView?.image = annotationImage
+        return annotationView
     }
 }

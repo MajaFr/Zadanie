@@ -11,4 +11,5 @@ struct AppColors {
     static let background: UIColor = UIColor(named: "background")!
     static let navBarBackground: UIColor = UIColor(named: "navBarBackground")!
     static let positiveGreen: UIColor = UIColor(named: "positiveGreen")!
+    static let distanceLine: UIColor = UIColor(named: "distanceLine")!
 }
